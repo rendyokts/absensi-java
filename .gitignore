@@ -1,0 +1,27 @@
+# Folder hasil build Maven
+/target/
+
+# Konfigurasi NetBeans yang tidak diperlukan
+nbproject/private/
+nbproject/configs/
+*.nbattrs
+
+# File cache dan log sementara
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# File Maven yang tidak perlu dikirimkan
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Jika menggunakan IDE lain seperti IntelliJ atau Eclipse
+.idea/
+*.iml
+.classpath
+.project
+.settings/
