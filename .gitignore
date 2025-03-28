@@ -25,3 +25,5 @@ release.properties
 .classpath
 .project
 .settings/
+
+lib/Database.java
