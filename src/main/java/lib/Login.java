@@ -9,11 +9,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.swing.JOptionPane;
-
-/**
- *
- * @author THINKPAD
- */
 public class Login extends javax.swing.JFrame {
     public Login() {
         initComponents();
@@ -195,7 +190,7 @@ public class Login extends javax.swing.JFrame {
                                 .addContainerGap(89, Short.MAX_VALUE)));
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>                        
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         String username = jTextField1.getText();
