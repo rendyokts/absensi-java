@@ -10,6 +10,7 @@ public class Menu extends javax.swing.JFrame {
     public Menu() {
         initComponents();
         setLocationRelativeTo(null);
+        showPanel(new DashboardPanel()); // Tampilkan dashboard saat pertama buka
     }
 
     private void initComponents() {
@@ -29,7 +30,7 @@ public class Menu extends javax.swing.JFrame {
         jPanelMenu = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel("Master data");
         jLabel3 = new javax.swing.JLabel("Laporan");
-        jPanel2 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel(new BorderLayout()); // <- Penting: supaya bisa ganti-ganti panel
         jPanelLaporan = new javax.swing.JPanel();
 
         jButton1 = new javax.swing.JButton("Dashboard");
@@ -48,7 +49,7 @@ public class Menu extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(850, 500));
 
-        ImageIcon logoIcon = new ImageIcon(getClass().getResource("/lib/logo.png"));
+        ImageIcon logoIcon = new ImageIcon(getClass().getResource("/images/logo.png"));
         Image img = logoIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
         logoIcon = new ImageIcon(img);
         JLabel logoLabel = new JLabel(logoIcon);
@@ -112,7 +113,7 @@ public class Menu extends javax.swing.JFrame {
                         .addComponent(jLabel3)
                         .addComponent(jPanelLaporan, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
                     .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -132,13 +133,13 @@ public class Menu extends javax.swing.JFrame {
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        getContentPane().add(jPanel1);
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(jPanel1, BorderLayout.CENTER);
         pack();
     }
 
     private void showPanel(JPanel panel) {
         jPanel2.removeAll();
-        jPanel2.setLayout(new BorderLayout());
         jPanel2.add(panel, BorderLayout.CENTER);
         jPanel2.revalidate();
         jPanel2.repaint();
