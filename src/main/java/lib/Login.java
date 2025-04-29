@@ -8,7 +8,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Arrays;
+
 import javax.swing.JOptionPane;
+
+import lib.Menu;
+import lib.User;
+
 public class Login extends javax.swing.JFrame {
     public Login() {
         initComponents();
@@ -30,7 +36,6 @@ public class Login extends javax.swing.JFrame {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
@@ -51,7 +56,7 @@ public class Login extends javax.swing.JFrame {
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/zona-kreatif.png"))); // NOI18N
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 24));
         jLabel2.setText("Login");
 
         jTextField1.addActionListener(new java.awt.event.ActionListener() {
@@ -190,33 +195,53 @@ public class Login extends javax.swing.JFrame {
                                 .addContainerGap(89, Short.MAX_VALUE)));
 
         pack();
-    }// </editor-fold>                        
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        String username = jTextField1.getText();
+        String username = jTextField1.getText().trim();
         String password = new String(jPasswordField1.getPassword());
-        String hashedPassword = hashPassword(password); // hash password yang dimasukkan
 
-        try {
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/absensi", "root", "");
-            String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
+        // Input validation
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username dan password harus diisi!",
+                    "Input Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String hashedPassword = hashPassword(password);
+
+        try (Connection conn = Database.getConnection();
+                PreparedStatement pst = conn.prepareStatement(
+                        "SELECT * FROM users WHERE username = ? AND password = ?")) {
+
             pst.setString(1, username);
-            pst.setString(2, hashedPassword); // pakai password yang sudah di-hash
+            pst.setString(2, hashedPassword);
 
-            ResultSet rs = pst.executeQuery();
-            if (rs.next()) {
-                JOptionPane.showMessageDialog(this, "Login berhasil!");
-                // new MainMenu().setVisible(true);
-                this.dispose();
-            } else {
-                JOptionPane.showMessageDialog(this, "Username atau Password salah!", "Login Gagal",
-                        JOptionPane.ERROR_MESSAGE);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    User currentUser = new User(
+                            rs.getInt("id"),
+                            rs.getString("nrp"),
+                            rs.getString("username"),
+                            rs.getString("name"),
+                            rs.getString("email"),
+                            rs.getString("no_hp"),
+                            rs.getString("role"));
+
+                    Arrays.fill(jPasswordField1.getPassword(), '0'); // Clear password
+                    new lib.Menu(currentUser).setVisible(true);
+                    this.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Username atau Password salah!",
+                            "Login Gagal", JOptionPane.ERROR_MESSAGE);
+                }
             }
-
-            conn.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+            JOptionPane.showMessageDialog(this,
+                    "Terjadi kesalahan: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 
