@@ -1,16 +1,34 @@
 package lib;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.Vector;
 
 public class Menu extends javax.swing.JFrame {
+    private User currentUser;
+    private String role;
 
-    public Menu() {
+    public Menu(User user) {
+        this.currentUser = user;
+        this.role = currentUser.getRole();
         initComponents();
         setLocationRelativeTo(null);
-        showPanel(new DashboardPanel()); // Tampilkan dashboard saat pertama buka
+        showPanel(new DashboardPanel());
+        configureMenuBasedOnRole();
+
+        jLabel3.setVisible("admin".equals(role));
+        jLabel2.setVisible("admin".equals(role));
+    }
+
+    private void configureMenuBasedOnRole() {
+        if ("karyawan".equals(role)) {
+            jPanelMenu.remove(jButton2);
+            jPanelMenu.remove(jButton3);
+            jPanelLaporan.remove(jButton8);
+            jPanelLaporan.remove(jButton9);
+            jPanelLaporan.remove(jButton10);
+            jPanelLaporan.remove(jButton11);
+            jPanelLaporan.remove(jButton12);
+        }
     }
 
     private void initComponents() {
@@ -35,7 +53,7 @@ public class Menu extends javax.swing.JFrame {
 
         jButton1 = new javax.swing.JButton("Dashboard");
         jButton2 = new javax.swing.JButton("Data Karyawan");
-        jButton3 = new javax.swing.JButton("Jabatan & Departemen");
+        jButton3 = new javax.swing.JButton("Jabatan & Divisi");
         jButton4 = new javax.swing.JButton("Jadwal Kerja");
         jButton5 = new javax.swing.JButton("Absensi Karyawan");
         jButton6 = new javax.swing.JButton("Pengajuan Cuti & Izin");
@@ -47,13 +65,13 @@ public class Menu extends javax.swing.JFrame {
         jButton12 = new javax.swing.JButton("Laporan Rekapitulasi Kehadiran");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(850, 500));
+        setPreferredSize(new java.awt.Dimension(1200, 700));
 
         ImageIcon logoIcon = new ImageIcon(getClass().getResource("/images/logo.png"));
         Image img = logoIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
         logoIcon = new ImageIcon(img);
         JLabel logoLabel = new JLabel(logoIcon);
-        jLabel1 = new JLabel("Zona Kreasi");
+        jLabel1 = new JLabel("Zona Kreatif");
         jLabel1.setFont(new Font("Segoe UI", Font.BOLD, 20));
         jLabel1.setForeground(new Color(80, 50, 120));
 
@@ -71,11 +89,19 @@ public class Menu extends javax.swing.JFrame {
 
         jButton1.addActionListener(evt -> showPanel(new DashboardPanel()));
         jButton2.addActionListener(evt -> showPanel(new KaryawanPanel()));
-        jButton3.addActionListener(evt -> showPanel(new JabatanDepartemenPanel()));
-        jButton4.addActionListener(evt -> showPanel(new JadwalKerjaPanel()));
-        jButton5.addActionListener(evt -> showPanel(new AbsensiPanel()));
-        jButton6.addActionListener(evt -> showPanel(new CutiIzinPanel()));
-
+        jButton3.addActionListener(evt -> showPanel(new JabatanDivisi()));
+        jButton4.addActionListener(evt -> {
+            boolean isAdmin = "Admin".equalsIgnoreCase(currentUser.getRole());
+            showPanel(new JadwalKerjaPanel(isAdmin, currentUser.getNrp()));
+        });
+        jButton5.addActionListener(evt -> {
+            boolean isAdmin = "Admin".equalsIgnoreCase(currentUser.getRole());
+            showPanel(new AbsensiPanel(isAdmin, currentUser.getNrp()));
+        });
+        jButton6.addActionListener(evt -> {
+            boolean isAdmin = "Admin".equalsIgnoreCase(currentUser.getRole());
+            showPanel(new CutiIzinPanel(isAdmin, currentUser.getNrp()));
+        });
         jPanelMenu.add(jButton1);
         jPanelMenu.add(jButton2);
         jPanelMenu.add(jButton3);
@@ -88,7 +114,7 @@ public class Menu extends javax.swing.JFrame {
 
         jButton8.addActionListener(evt -> showPanel(new LaporanAbsensiHarianPanel()));
         jButton9.addActionListener(evt -> showPanel(new LaporanAbsensiBulananPanel()));
-        jButton10.addActionListener(evt -> showPanel(new LaporanKaryawanPanel()));
+        jButton10.addActionListener(evt -> showPanel(new KaryawanPanel()));
         jButton11.addActionListener(evt -> showPanel(new LaporanCutiIzinPanel()));
         jButton12.addActionListener(evt -> showPanel(new LaporanRekapitulasiKehadiranPanel()));
 
@@ -103,35 +129,38 @@ public class Menu extends javax.swing.JFrame {
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(logoTitlePanel)
-                        .addComponent(jLabel2)
-                        .addComponent(jPanelMenu, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel3)
-                        .addComponent(jPanelLaporan, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
-                    .addContainerGap())
-        );
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(logoTitlePanel)
+                                        .addComponent(jLabel2)
+                                        .addComponent(jPanelMenu, javax.swing.GroupLayout.PREFERRED_SIZE, 220,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabel3)
+                                        .addComponent(jPanelLaporan, javax.swing.GroupLayout.PREFERRED_SIZE, 220,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
+                                .addContainerGap()));
         jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addGap(20)
-                    .addComponent(logoTitlePanel)
-                    .addGap(15)
-                    .addComponent(jLabel2)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jPanelMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(15)
-                    .addComponent(jLabel3)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jPanelLaporan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(20, Short.MAX_VALUE))
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(20)
+                                .addComponent(logoTitlePanel)
+                                .addGap(15)
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPanelMenu, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(15)
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPanelLaporan, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(20, Short.MAX_VALUE))
+                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(jPanel1, BorderLayout.CENTER);
@@ -146,7 +175,11 @@ public class Menu extends javax.swing.JFrame {
     }
 
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(() -> new Menu().setVisible(true));
+        // Misalnya peran pengguna diambil dari login
+        String role = "karyawan"; // Gantilah sesuai dengan role pengguna yang login
+        User user = new User(1, "NRP001", "admin", "Admin User",
+                "admin@example.com", "123456789", role);
+        java.awt.EventQueue.invokeLater(() -> new Menu(user).setVisible(true));
     }
 
     // Panel Dummy
@@ -154,130 +187,51 @@ public class Menu extends javax.swing.JFrame {
         public DashboardPanel() {
             setLayout(new BorderLayout());
             setBackground(Color.WHITE);
-            JLabel label = new JLabel("Selamat Datang di Dashboard", SwingConstants.CENTER);
+            JLabel label = new JLabel("Absensi PT Zona Kreatif Indonesia", SwingConstants.CENTER);
             label.setFont(new Font("Segoe UI", Font.BOLD, 18));
             label.setForeground(new Color(80, 60, 130));
             add(label, BorderLayout.CENTER);
         }
     }
 
-    class KaryawanPanel extends JPanel {
-        public KaryawanPanel() { add(new JLabel("Ini adalah halaman Data Karyawan")); }
-    }
-    class JabatanDepartemenPanel extends JPanel {
-        public JabatanDepartemenPanel() { add(new JLabel("Ini adalah halaman Jabatan dan Departemen")); }
-    }
-    class JadwalKerjaPanel extends JPanel {
-        public JadwalKerjaPanel() { add(new JLabel("Ini adalah halaman Jadwal Kerja")); }
-    }
-    class AbsensiPanel extends JPanel {
-        public AbsensiPanel() { add(new JLabel("Ini adalah halaman Absensi Karyawan")); }
-    }
     class LaporanAbsensiHarianPanel extends JPanel {
-        public LaporanAbsensiHarianPanel() { add(new JLabel("Ini adalah Laporan Absensi Harian")); }
+        public LaporanAbsensiHarianPanel() {
+            add(new JLabel("Ini adalah Laporan Absensi Harian"));
+        }
     }
+
     class LaporanAbsensiBulananPanel extends JPanel {
-        public LaporanAbsensiBulananPanel() { add(new JLabel("Ini adalah Laporan Absensi Bulanan")); }
+        public LaporanAbsensiBulananPanel() {
+            add(new JLabel("Ini adalah Laporan Absensi Bulanan"));
+        }
     }
+
     class LaporanKaryawanPanel extends JPanel {
-        public LaporanKaryawanPanel() { add(new JLabel("Ini adalah Laporan Karyawan")); }
+        public LaporanKaryawanPanel() {
+            add(new JLabel("Ini adalah Laporan Karyawan"));
+        }
     }
+
     class LaporanCutiIzinPanel extends JPanel {
-        public LaporanCutiIzinPanel() { add(new JLabel("Ini adalah Laporan Cuti dan Izin")); }
+        public LaporanCutiIzinPanel() {
+            add(new JLabel("Ini adalah Laporan Cuti dan Izin"));
+        }
     }
+
     class LaporanRekapitulasiKehadiranPanel extends JPanel {
-        public LaporanRekapitulasiKehadiranPanel() { add(new JLabel("Ini adalah Laporan Rekapitulasi Kehadiran")); }
-    }
-
-    class CutiIzinPanel extends JPanel {
-        private JTable table;
-        private DefaultTableModel tableModel;
-        private JTextField searchField;
-        private Vector<Vector<Object>> data;
-
-        public CutiIzinPanel() {
-            setLayout(new BorderLayout(5, 5));
-            setBackground(Color.WHITE);
-            data = new Vector<>();
-
-            JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            titlePanel.setBackground(Color.WHITE);
-            JLabel titleLabel = new JLabel("Pengajuan Cuti & Izin Karyawan");
-            titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-            titlePanel.add(titleLabel);
-
-            JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            topPanel.setBackground(Color.WHITE);
-            JButton addButton = new JButton("+");
-            addButton.setPreferredSize(new Dimension(40, 25));
-            addButton.addActionListener(e -> addDataDialog());
-
-            searchField = new JTextField();
-            searchField.setPreferredSize(new Dimension(200, 25));
-            searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-                public void insertUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
-                public void removeUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
-                public void changedUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
-            });
-
-            topPanel.add(addButton);
-            topPanel.add(Box.createHorizontalStrut(10));
-            topPanel.add(searchField);
-
-            String[] columnNames = {"Nama", "Jenis", "Tanggal Mulai", "Tanggal Selesai", "Keterangan"};
-            tableModel = new DefaultTableModel(columnNames, 0);
-            table = new JTable(tableModel);
-            table.setRowHeight(25);
-
-            JScrollPane scrollPane = new JScrollPane(table);
-
-            add(titlePanel, BorderLayout.NORTH);
-            add(topPanel, BorderLayout.CENTER);
-            add(scrollPane, BorderLayout.SOUTH);
-        }
-
-        private void addDataDialog() {
-            JTextField namaField = new JTextField();
-            JComboBox<String> jenisCombo = new JComboBox<>(new String[]{"Cuti", "Izin (Sakit)", "Izin (WFH)", "Izin (Dinas Luar Kota)"});
-            JSpinner startDate = new JSpinner(new SpinnerDateModel());
-            startDate.setEditor(new JSpinner.DateEditor(startDate, "dd/MM/yyyy"));
-            JSpinner endDate = new JSpinner(new SpinnerDateModel());
-            endDate.setEditor(new JSpinner.DateEditor(endDate, "dd/MM/yyyy"));
-            JTextField ketField = new JTextField();
-
-            JPanel panel = new JPanel(new GridLayout(0, 1));
-            panel.add(new JLabel("Nama:")); panel.add(namaField);
-            panel.add(new JLabel("Jenis:")); panel.add(jenisCombo);
-            panel.add(new JLabel("Mulai:")); panel.add(startDate);
-            panel.add(new JLabel("Selesai:")); panel.add(endDate);
-            panel.add(new JLabel("Keterangan:")); panel.add(ketField);
-
-            if (JOptionPane.showConfirmDialog(null, panel, "Tambah Data", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-                Vector<Object> row = new Vector<>();
-                row.add(namaField.getText());
-                row.add(jenisCombo.getSelectedItem());
-                row.add(((JSpinner.DateEditor) startDate.getEditor()).getFormat().format(startDate.getValue()));
-                row.add(((JSpinner.DateEditor) endDate.getEditor()).getFormat().format(endDate.getValue()));
-                row.add(ketField.getText());
-
-                data.add(row);
-                tableModel.addRow(row);
-            }
-        }
-
-        private void filterTable() {
-            String keyword = searchField.getText().toLowerCase();
-            tableModel.setRowCount(0);
-            for (Vector<Object> row : data) {
-                if (row.get(0).toString().toLowerCase().contains(keyword)) {
-                    tableModel.addRow(row);
-                }
-            }
+        public LaporanRekapitulasiKehadiranPanel() {
+            add(new JLabel("Ini adalah Laporan Rekapitulasi Kehadiran"));
         }
     }
 
-    private javax.swing.JButton jButton1, jButton2, jButton3, jButton4, jButton5, jButton6;
-    private javax.swing.JButton jButton8, jButton9, jButton10, jButton11, jButton12;
-    private javax.swing.JLabel jLabel1, jLabel2, jLabel3;
-    private javax.swing.JPanel jPanel1, jPanel2, jPanelMenu, jPanelLaporan;
+    // Deklarasi komponen GUI
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanelMenu;
+    javax.swing.JLabel jLabel2;
+    javax.swing.JLabel jLabel3;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanelLaporan;
+    private javax.swing.JButton jButton1, jButton2, jButton3, jButton4, jButton5, jButton6, jButton8, jButton9,
+            jButton10, jButton11, jButton12;
+    private javax.swing.JLabel jLabel1;
 }
