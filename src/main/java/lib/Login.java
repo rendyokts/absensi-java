@@ -5,15 +5,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Arrays;
 
 import javax.swing.JOptionPane;
-
-import lib.Menu;
-import lib.User;
 
 public class Login extends javax.swing.JFrame {
     public Login() {
