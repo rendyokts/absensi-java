@@ -174,6 +174,7 @@ public class Register extends JFrame {
         String password = passwordTextField.getText().trim();
         String confirmPassword = confirmPasswordTextField.getText().trim();
 
+        // Basic validation
         if (name.isEmpty() || username.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty()
                 || confirmPassword.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -181,7 +182,7 @@ public class Register extends JFrame {
         }
 
         if (!email.contains("@") || !email.contains(".")) {
-            JOptionPane.showMessageDialog(this, "Format email tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Invalid email format.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -193,19 +194,19 @@ public class Register extends JFrame {
         try {
             Connection conn = Database.getConnection();
             if (conn != null) {
-                // Cek apakah username sudah dipakai
+                // Check if username already exists
                 String checkSql = "SELECT id FROM users WHERE username = ?";
                 PreparedStatement checkStmt = conn.prepareStatement(checkSql);
                 checkStmt.setString(1, username);
                 ResultSet rs = checkStmt.executeQuery();
                 if (rs.next()) {
-                    JOptionPane.showMessageDialog(this, "Username sudah digunakan, coba yang lain.", "Peringatan",
+                    JOptionPane.showMessageDialog(this, "Username already taken, please try another.", "Warning",
                             JOptionPane.WARNING_MESSAGE);
                     conn.close();
                     return;
                 }
 
-                // Simpan data ke database
+                // Save data into the database
                 String insertSql = "INSERT INTO users (username, name, email, no_hp, password) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement pst = conn.prepareStatement(insertSql);
                 pst.setString(1, username);
@@ -216,8 +217,8 @@ public class Register extends JFrame {
 
                 int inserted = pst.executeUpdate();
                 if (inserted > 0) {
-                    JOptionPane.showMessageDialog(this, "Registrasi berhasil!");
-                    // Reset field
+                    JOptionPane.showMessageDialog(this, "Registration successful!");
+                    // Reset fields
                     nameTextField.setText("");
                     usernameTextField.setText("");
                     emailTextField.setText("");
@@ -225,7 +226,7 @@ public class Register extends JFrame {
                     passwordTextField.setText("");
                     confirmPasswordTextField.setText("");
                 } else {
-                    JOptionPane.showMessageDialog(this, "Registrasi gagal!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Registration failed!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
 
                 conn.close();
