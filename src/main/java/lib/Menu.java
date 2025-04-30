@@ -31,6 +31,15 @@ public class Menu extends javax.swing.JFrame {
         }
     }
 
+    private void logout() {
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin logout?", "Konfirmasi Logout",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            this.dispose(); // Tutup jendela menu
+            new Login().setVisible(true); // Kembali ke form login
+        }
+    }
+
     private void initComponents() {
         jPanel1 = new javax.swing.JPanel() {
             @Override
@@ -80,6 +89,9 @@ public class Menu extends javax.swing.JFrame {
         logoTitlePanel.add(logoLabel);
         logoTitlePanel.add(jLabel1);
 
+        jButtonLogout = new javax.swing.JButton("Logout");
+        jButtonLogout.addActionListener(evt -> logout());
+
         jLabel2.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         jLabel3.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
@@ -88,7 +100,7 @@ public class Menu extends javax.swing.JFrame {
         jPanelMenu.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         jButton1.addActionListener(evt -> showPanel(new DashboardPanel()));
-        jButton2.addActionListener(evt -> showPanel(new KaryawanPanel()));
+        jButton2.addActionListener(evt -> showPanel(new LaporanKaryawanPanel()));
         jButton3.addActionListener(evt -> showPanel(new JabatanDivisi()));
         jButton4.addActionListener(evt -> {
             boolean isAdmin = "Admin".equalsIgnoreCase(currentUser.getRole());
@@ -108,15 +120,16 @@ public class Menu extends javax.swing.JFrame {
         jPanelMenu.add(jButton4);
         jPanelMenu.add(jButton5);
         jPanelMenu.add(jButton6);
+        jPanelMenu.add(jButtonLogout);
 
         jPanelLaporan.setLayout(new GridLayout(0, 1, 5, 5));
         jPanelLaporan.setBackground(new Color(255, 255, 255));
 
         jButton8.addActionListener(evt -> showPanel(new LaporanAbsensiHarianPanel()));
         jButton9.addActionListener(evt -> showPanel(new LaporanAbsensiBulananPanel()));
-        jButton10.addActionListener(evt -> showPanel(new KaryawanPanel()));
+        jButton10.addActionListener(evt -> showPanel(new LaporanKaryawanPanel()));
         jButton11.addActionListener(evt -> showPanel(new LaporanCutiIzinPanel()));
-        jButton12.addActionListener(evt -> showPanel(new LaporanRekapitulasiKehadiranPanel()));
+        jButton12.addActionListener(evt -> showPanel(new LaporanRekapAbsensiPanel()));
 
         jPanelLaporan.add(jButton8);
         jPanelLaporan.add(jButton9);
@@ -194,36 +207,6 @@ public class Menu extends javax.swing.JFrame {
         }
     }
 
-    class LaporanAbsensiHarianPanel extends JPanel {
-        public LaporanAbsensiHarianPanel() {
-            add(new JLabel("Ini adalah Laporan Absensi Harian"));
-        }
-    }
-
-    class LaporanAbsensiBulananPanel extends JPanel {
-        public LaporanAbsensiBulananPanel() {
-            add(new JLabel("Ini adalah Laporan Absensi Bulanan"));
-        }
-    }
-
-    class LaporanKaryawanPanel extends JPanel {
-        public LaporanKaryawanPanel() {
-            add(new JLabel("Ini adalah Laporan Karyawan"));
-        }
-    }
-
-    class LaporanCutiIzinPanel extends JPanel {
-        public LaporanCutiIzinPanel() {
-            add(new JLabel("Ini adalah Laporan Cuti dan Izin"));
-        }
-    }
-
-    class LaporanRekapitulasiKehadiranPanel extends JPanel {
-        public LaporanRekapitulasiKehadiranPanel() {
-            add(new JLabel("Ini adalah Laporan Rekapitulasi Kehadiran"));
-        }
-    }
-
     // Deklarasi komponen GUI
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanelMenu;
@@ -232,6 +215,6 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanelLaporan;
     private javax.swing.JButton jButton1, jButton2, jButton3, jButton4, jButton5, jButton6, jButton8, jButton9,
-            jButton10, jButton11, jButton12;
+            jButton10, jButton11, jButton12, jButtonLogout;
     private javax.swing.JLabel jLabel1;
 }
