@@ -2,53 +2,34 @@ package lib;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
 
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.sql.*;
-import java.text.SimpleDateFormat;
-import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
-import com.itextpdf.text.pdf.*;
 
-public class LaporanAbsensiBulananPanel extends JPanel {
-    private JComboBox<String> monthCombo;
-    private JComboBox<Integer> yearCombo;
+public class LaporanKaryawanPanel extends JPanel {
     private JButton generateBtn;
     private JTable table;
     private DefaultTableModel tableModel;
 
-    public LaporanAbsensiBulananPanel() {
+    public LaporanKaryawanPanel() {
         setLayout(new BorderLayout(5, 5));
         setBackground(Color.WHITE);
 
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         filterPanel.setBackground(Color.WHITE);
 
-        monthCombo = new JComboBox<>(new String[] {
-                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-        });
-
-        int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
-        yearCombo = new JComboBox<>();
-        for (int i = currentYear - 5; i <= currentYear + 1; i++) {
-            yearCombo.addItem(i);
-        }
-        yearCombo.setSelectedItem(currentYear);
-
         generateBtn = new JButton("Generate PDF");
         generateBtn.addActionListener(e -> generatePDF());
 
-        filterPanel.add(new JLabel("Bulan:"));
-        filterPanel.add(monthCombo);
-        filterPanel.add(new JLabel("Tahun:"));
-        filterPanel.add(yearCombo);
         filterPanel.add(generateBtn);
 
         tableModel = new DefaultTableModel(new String[] {
-                "Tanggal", "NRP", "Nama", "Jam Masuk", "Jam Keluar", "Status", "Keterangan"
+                "NRP", "Nama", "Alamat", "Status", "Jabatan"
         }, 0);
 
         table = new JTable(tableModel);
@@ -57,46 +38,26 @@ public class LaporanAbsensiBulananPanel extends JPanel {
         add(filterPanel, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Tambahkan listener agar data dimuat ulang saat bulan/tahun diubah
-        monthCombo.addActionListener(e -> loadData(getSelectedMonth(), getSelectedYear()));
-        yearCombo.addActionListener(e -> loadData(getSelectedMonth(), getSelectedYear()));
-
         // Load data saat panel dibuka
-        loadData(getSelectedMonth(), getSelectedYear());
+        loadData();
     }
 
-    private int getSelectedMonth() {
-        return monthCombo.getSelectedIndex() + 1;
-    }
-
-    private int getSelectedYear() {
-        return (int) yearCombo.getSelectedItem();
-    }
-
-    private void loadData(int month, int year) {
+    private void loadData() {
         try (Connection conn = Database.getConnection()) {
-            String sql = """
-                        SELECT a.tgl, a.nrp, k.nama, a.jam_masuk, a.jam_keluar, a.status, a.keterangan
-                        FROM absensi a
-                        JOIN karyawan k ON a.nrp = k.nrp
-                        WHERE MONTH(a.tgl) = ? AND YEAR(a.tgl) = ?
-                        ORDER BY a.tgl, k.nama
-                    """;
+            String sql = "SELECT k.nrp, k.nama, k.alamat, k.status, j.nama_jabatan " +
+                    "FROM karyawan k " +
+                    "JOIN jabatan j ON k.jabatan_id = j.id";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, month);
-            stmt.setInt(2, year);
             ResultSet rs = stmt.executeQuery();
 
             tableModel.setRowCount(0);
             while (rs.next()) {
                 Object[] row = {
-                        rs.getDate("tgl"),
                         rs.getString("nrp"),
                         rs.getString("nama"),
-                        rs.getTime("jam_masuk"),
-                        rs.getTime("jam_keluar"),
+                        rs.getString("alamat"),
                         rs.getString("status"),
-                        rs.getString("keterangan")
+                        rs.getString("nama_jabatan")
                 };
                 tableModel.addRow(row);
             }
@@ -120,15 +81,11 @@ public class LaporanAbsensiBulananPanel extends JPanel {
         }
 
         try {
-            Document doc = new Document(PageSize.A4.rotate());
+            Document doc = new Document(PageSize.A4);
             PdfWriter.getInstance(doc, new FileOutputStream(path));
             doc.open();
 
-            int month = getSelectedMonth();
-            int year = getSelectedYear();
-
-            String title = "LAPORAN ABSENSI BULANAN\n" +
-                    new SimpleDateFormat("MMMM yyyy").format(new SimpleDateFormat("MM-yyyy").parse(month + "-" + year));
+            String title = "LAPORAN DATA KARYAWAN";
 
             Paragraph pTitle = new Paragraph(title, new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD));
             pTitle.setAlignment(Element.ALIGN_CENTER);
@@ -148,19 +105,10 @@ public class LaporanAbsensiBulananPanel extends JPanel {
             }
 
             // Isi
-            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
             for (int row = 0; row < table.getRowCount(); row++) {
                 for (int col = 0; col < table.getColumnCount(); col++) {
                     Object val = table.getValueAt(row, col);
-                    String text = (val == null) ? "" : (val instanceof Time) ? timeFormat.format(val) : val.toString();
-                    PdfPCell cell = new PdfPCell(new Phrase(text, contentFont));
-                    if (col == 5 && text != null) {
-                        switch (text) {
-                            case "Alpha" -> cell.setBackgroundColor(new BaseColor(255, 150, 150));
-                            case "Hadir" -> cell.setBackgroundColor(new BaseColor(150, 255, 150));
-                            case "Telat" -> cell.setBackgroundColor(new BaseColor(255, 255, 150));
-                        }
-                    }
+                    PdfPCell cell = new PdfPCell(new Phrase(val != null ? val.toString() : "", contentFont));
                     pdfTable.addCell(cell);
                 }
             }
@@ -177,5 +125,4 @@ public class LaporanAbsensiBulananPanel extends JPanel {
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
 }
