@@ -189,7 +189,6 @@ public class Login extends javax.swing.JFrame {
                                                 .addGap(65, 65, 65)
                                                 .addComponent(jLabel1)))
                                 .addContainerGap(89, Short.MAX_VALUE)));
-
         pack();
     }
 
