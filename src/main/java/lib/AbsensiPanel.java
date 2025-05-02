@@ -1,3 +1,4 @@
+
 package lib;
 
 import javax.swing.*;
@@ -6,6 +7,9 @@ import java.awt.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+
 
 public class AbsensiPanel extends JPanel {
     private final JTable table;
@@ -126,41 +130,69 @@ public class AbsensiPanel extends JPanel {
     }
 
     private void doCheckIn() {
-        try (Connection conn = Database.getConnection()) {
-            // Cek apakah sudah check in hari ini
-            String checkSql = "SELECT * FROM absensi WHERE nrp = ? AND tgl = CURDATE()";
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
-            checkStmt.setString(1, nrp);
-            ResultSet rs = checkStmt.executeQuery();
+    try (Connection conn = Database.getConnection()) {
+        // Cek apakah sudah check in hari ini
+        String checkSql = "SELECT * FROM absensi WHERE nrp = ? AND tgl = CURDATE()";
+        PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+        checkStmt.setString(1, nrp);
+        ResultSet rs = checkStmt.executeQuery();
 
-            if (rs.next()) {
-                JOptionPane.showMessageDialog(this,
-                        "Anda sudah melakukan check in hari ini",
-                        "Info",
-                        JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-
-            // Insert data check in
-            String insertSql = "INSERT INTO absensi (nrp, tgl, jam_masuk, status) VALUES (?, CURDATE(), CURTIME(), 'Hadir')";
-            PreparedStatement insertStmt = conn.prepareStatement(insertSql);
-            insertStmt.setString(1, nrp);
-            insertStmt.executeUpdate();
-
+        if (rs.next()) {
             JOptionPane.showMessageDialog(this,
-                    "Check in berhasil dicatat",
-                    "Sukses",
+                    "Anda sudah melakukan check in hari ini",
+                    "Info",
                     JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
 
-            loadData(); // Refresh data
-        } catch (SQLException e) {
-            e.printStackTrace();
+        String jadwalSql = "SELECT jam_masuk FROM jadwal_kerja WHERE nrp = ? AND tanggal = CURDATE()";
+        PreparedStatement jadwalStmt = conn.prepareStatement(jadwalSql);
+        jadwalStmt.setString(1, nrp);
+        ResultSet jadwalRs = jadwalStmt.executeQuery();
+
+        if (!jadwalRs.next()) {
             JOptionPane.showMessageDialog(this,
-                    "Error saat check in: " + e.getMessage(),
+                    "Tidak ditemukan jadwal shift Anda untuk hari ini.",
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        // Ambil jadwal masuk dan waktu sekarang
+        Time sqlTime = jadwalRs.getTime("jam_masuk");
+        LocalTime jadwalMasuk = sqlTime.toLocalTime();
+        LocalTime sekarang = LocalTime.now();
+
+        long selisihMenit = ChronoUnit.MINUTES.between(jadwalMasuk, sekarang);
+        String keterangan = "";
+
+
+        if (selisihMenit > 0) {
+            keterangan = "Terlambat " + selisihMenit + " menit";
+        }
+
+        // Simpan data absensi
+        String insertSql = "INSERT INTO absensi (nrp, tgl, jam_masuk, status, keterangan) VALUES (?, CURDATE(), CURTIME(), 'Hadir', ?)";
+        PreparedStatement insertStmt = conn.prepareStatement(insertSql);
+        insertStmt.setString(1, nrp);
+        insertStmt.setString(2, keterangan);
+        insertStmt.executeUpdate();
+
+        JOptionPane.showMessageDialog(this,
+                "Check in berhasil dicatat",
+                "Sukses",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        loadData(); // Refresh data
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+                "Error saat check in: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
+}
+
 
     private void doCheckOut() {
         try (Connection conn = Database.getConnection()) {
@@ -185,11 +217,38 @@ public class AbsensiPanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
+            
+        String keluarSql = "SELECT jam_keluar FROM jadwal_kerja WHERE nrp = ? AND tanggal = CURDATE()";
+        PreparedStatement keluarStmt = conn.prepareStatement(keluarSql);
+        keluarStmt.setString(1, nrp);
+        ResultSet keluarRs = keluarStmt.executeQuery();
+        
+        if (!keluarRs.next()) {
+            JOptionPane.showMessageDialog(this,
+                    "Tidak ditemukan jadwal shift Anda untuk hari ini.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+            
+            // Ambil jadwal keluar dan waktu sekarang
+        Time sqlTime = keluarRs.getTime("jam_keluar");
+        LocalTime jadwalKeluar = sqlTime.toLocalTime();
+        LocalTime sekarang = LocalTime.now();
+
+        long selisihMenit = ChronoUnit.MINUTES.between( sekarang, jadwalKeluar);
+        String keterangan = "";
+
+
+        if (selisihMenit > 0) {
+            keterangan = "Pulang lebih cepat";
+        }
 
             // Update data check out
-            String updateSql = "UPDATE absensi SET jam_keluar = CURTIME() WHERE id = ?";
+            String updateSql = "UPDATE absensi SET jam_keluar = CURTIME(), keterangan = ? WHERE id = ?";
             PreparedStatement updateStmt = conn.prepareStatement(updateSql);
-            updateStmt.setInt(1, rs.getInt("id"));
+            updateStmt.setString(1,keterangan);
+            updateStmt.setInt(2, rs.getInt("id"));
             updateStmt.executeUpdate();
 
             JOptionPane.showMessageDialog(this,

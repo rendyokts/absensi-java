@@ -100,7 +100,7 @@ public class Menu extends javax.swing.JFrame {
         jPanelMenu.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         jButton1.addActionListener(evt -> showPanel(new DashboardPanel()));
-        jButton2.addActionListener(evt -> showPanel(new LaporanKaryawanPanel()));
+        jButton2.addActionListener(evt -> showPanel(new DataKaryawanPanel()));
         jButton3.addActionListener(evt -> showPanel(new JabatanDivisi()));
         jButton4.addActionListener(evt -> {
             boolean isAdmin = "Admin".equalsIgnoreCase(currentUser.getRole());

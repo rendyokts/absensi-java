@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.sql.*;
 import com.itextpdf.text.Font;
+import java.text.SimpleDateFormat;
 
 public class LaporanCutiIzinPanel extends JPanel {
     private JButton generateBtn;
@@ -53,16 +54,19 @@ public class LaporanCutiIzinPanel extends JPanel {
             ResultSet rs = stmt.executeQuery();
 
             tableModel.setRowCount(0);
+            
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            
             while (rs.next()) {
                 Object[] row = {
                         rs.getString("nrp"),
                         rs.getString("nama"),
                         rs.getString("jenis"),
-                        rs.getDate("tgl_mulai"),
-                        rs.getDate("tgl_selesai"),
+                        rs.getDate("tgl_mulai")!= null ? dateFormat.format(rs.getDate("tgl_mulai")) : "",
+                        rs.getDate("tgl_selesai")!= null ? dateFormat.format(rs.getDate("tgl_selesai")) : "",
                         rs.getString("alasan"),
                         rs.getString("status_pengajuan"),
-                        rs.getDate("tgl_pengajuan")
+                        rs.getDate("tgl_pengajuan")!= null ? dateFormat.format(rs.getDate("tgl_pengajuan")) : "" 
                 };
                 tableModel.addRow(row);
             }
