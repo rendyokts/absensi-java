@@ -49,10 +49,10 @@ public class ApprovalCuti extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Pengajuan Cuti");
         setBackground(new java.awt.Color(255, 255, 255));
-        setBounds(new java.awt.Rectangle(0, 0, 800, 450));
+        setBounds(new java.awt.Rectangle(0, 0, 800, 500));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        setMaximumSize(new java.awt.Dimension(800, 450));
-        setPreferredSize(new java.awt.Dimension(800, 450));
+        setMaximumSize(new java.awt.Dimension(800, 500));
+        setPreferredSize(new java.awt.Dimension(800, 500));
         setResizable(false);
 
         jLabel8.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
@@ -102,7 +102,7 @@ public class ApprovalCuti extends javax.swing.JFrame {
         jLabel13.setText("ALASAN");
 
         jTextArea2.setColumns(20);
-        jTextArea2.setRows(3);
+        jTextArea2.setRows(2);
         jScrollPane3.setViewportView(jTextArea2);
 
         jLabel15.setIcon(new javax.swing.ImageIcon(getClass().getResource("/zona-kreatif.png"))); // NOI18N

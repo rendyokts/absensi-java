@@ -50,8 +50,8 @@ public class Register extends JFrame {
         usernameTextField = new JTextField();
         emailTextField = new JTextField();
         teleponTextField = new JTextField();
-        passwordTextField = new JTextField();
-        confirmPasswordTextField = new JTextField();
+        passwordTextField = new JPasswordField();
+        confirmPasswordTextField = new JPasswordField();
         registerButton = new JButton();
         jLabel3 = new JLabel();
         loginButtonRedirect = new JButton();
