@@ -31,7 +31,7 @@ public class AbsensiPanel extends JPanel {
         titlePanel.add(titleLabel);
 
         // Table Model
-        String[] columnNames = { "ID", "NRP", "Tanggal", "Jam Masuk", "Jam Keluar", "Status", "Keterangan" };
+        String[] columnNames = { "ID", "NRP", "Nama", "Tanggal", "Jam Masuk", "Jam Keluar", "Status", "Keterangan" };
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
@@ -94,10 +94,16 @@ public class AbsensiPanel extends JPanel {
             PreparedStatement stmt;
 
             if (isAdmin) {
-                sql = "SELECT * FROM absensi ORDER BY tgl DESC, nrp";
+                sql = "SELECT a.id, a.nrp, k.nama, a.tgl, a.jam_masuk, a.jam_keluar, a.status, a.keterangan "
+                        +"FROM absensi a "
+                        + "LEFT JOIN karyawan k ON a.nrp = k.nrp "
+                        +"ORDER BY a.tgl DESC, a.nrp";
                 stmt = conn.prepareStatement(sql);
             } else {
-                sql = "SELECT * FROM absensi WHERE nrp = ? ORDER BY tgl DESC";
+                sql = "SELECT a.id, a.nrp, k.nama, a.tgl, a.jam_masuk, a.jam_keluar, a.status, a.keterangan "
+                        +"FROM absensi a "
+                        + "LEFT JOIN karyawan k ON a.nrp = k.nrp "
+                        +"WHERE a.nrp = ? ORDER BY a.tgl DESC";
                 stmt = conn.prepareStatement(sql);
                 stmt.setString(1, nrp);
             }
@@ -112,6 +118,7 @@ public class AbsensiPanel extends JPanel {
                 Object[] row = {
                         rs.getInt("id"),
                         rs.getString("nrp"),
+                        rs.getString("nama"),
                         rs.getDate("tgl"),
                         rs.getTime("jam_masuk"),
                         rs.getTime("jam_keluar"),
@@ -168,7 +175,17 @@ public class AbsensiPanel extends JPanel {
 
 
         if (selisihMenit > 0) {
-            keterangan = "Terlambat " + selisihMenit + " menit";
+            long jam = selisihMenit / 60;
+            long menit = selisihMenit % 60;
+            
+            if (jam>0) {
+                keterangan = "Terlambat "+jam+" jam";
+                if (menit>0) {
+                    keterangan += " "+menit+" menit";
+                }
+            } else {
+                keterangan = "Terlambat "+menit+" menit";
+            }
         }
 
         // Simpan data absensi
@@ -217,38 +234,11 @@ public class AbsensiPanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
-            
-        String keluarSql = "SELECT jam_keluar FROM jadwal_kerja WHERE nrp = ? AND tanggal = CURDATE()";
-        PreparedStatement keluarStmt = conn.prepareStatement(keluarSql);
-        keluarStmt.setString(1, nrp);
-        ResultSet keluarRs = keluarStmt.executeQuery();
-        
-        if (!keluarRs.next()) {
-            JOptionPane.showMessageDialog(this,
-                    "Tidak ditemukan jadwal shift Anda untuk hari ini.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-            
-            // Ambil jadwal keluar dan waktu sekarang
-        Time sqlTime = keluarRs.getTime("jam_keluar");
-        LocalTime jadwalKeluar = sqlTime.toLocalTime();
-        LocalTime sekarang = LocalTime.now();
-
-        long selisihMenit = ChronoUnit.MINUTES.between( sekarang, jadwalKeluar);
-        String keterangan = "";
-
-
-        if (selisihMenit > 0) {
-            keterangan = "Pulang lebih cepat";
-        }
 
             // Update data check out
-            String updateSql = "UPDATE absensi SET jam_keluar = CURTIME(), keterangan = ? WHERE id = ?";
+            String updateSql = "UPDATE absensi SET jam_keluar = CURTIME() WHERE id = ?";
             PreparedStatement updateStmt = conn.prepareStatement(updateSql);
-            updateStmt.setString(1,keterangan);
-            updateStmt.setInt(2, rs.getInt("id"));
+            updateStmt.setInt(1, rs.getInt("id"));
             updateStmt.executeUpdate();
 
             JOptionPane.showMessageDialog(this,

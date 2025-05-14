@@ -26,9 +26,9 @@ public class DataKaryawanPanel extends JPanel {
         
         tambahBtn = new JButton("Tambah Karyawan");
         tambahBtn.addActionListener(e -> tambahKaryawan());
-
+        
         filterPanel.add(tambahBtn);
-
+        
         tableModel = new DefaultTableModel(new String[] {
                 "NRP", "Nama", "Alamat", "Status", "Jabatan"
         }, 0);
