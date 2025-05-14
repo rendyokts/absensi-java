@@ -1,7 +1,24 @@
 package lib;
 
 import javax.swing.*;
+import javax.swing.border.AbstractBorder;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class Menu extends javax.swing.JFrame {
     private User currentUser;
@@ -12,7 +29,7 @@ public class Menu extends javax.swing.JFrame {
         this.role = currentUser.getRole();
         initComponents();
         setLocationRelativeTo(null);
-        showPanel(new DashboardPanel());
+        showPanel(new DashboardPanel(Database.getConnection(), currentUser.getNrp(), currentUser.getRole()));
         configureMenuBasedOnRole();
 
         jLabel3.setVisible("admin".equals(role));
@@ -90,7 +107,7 @@ public class Menu extends javax.swing.JFrame {
         logoTitlePanel.add(jLabel1);
 
         jButtonLogout = new javax.swing.JButton("Logout");
-        jButtonLogout.addActionListener(evt -> logout());
+        jButtonLogout.addActionListener(_ -> logout());
 
         jLabel2.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         jLabel3.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -99,18 +116,19 @@ public class Menu extends javax.swing.JFrame {
         jPanelMenu.setBackground(new Color(255, 255, 255));
         jPanelMenu.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        jButton1.addActionListener(evt -> showPanel(new DashboardPanel()));
-        jButton2.addActionListener(evt -> showPanel(new DataKaryawanPanel()));
-        jButton3.addActionListener(evt -> showPanel(new JabatanDivisi()));
-        jButton4.addActionListener(evt -> {
+        jButton1.addActionListener(_ -> showPanel(
+                new DashboardPanel(Database.getConnection(), currentUser.getNrp(), currentUser.getRole())));
+        jButton2.addActionListener(_ -> showPanel(new DataKaryawanPanel()));
+        jButton3.addActionListener(_ -> showPanel(new JabatanDivisi()));
+        jButton4.addActionListener(_ -> {
             boolean isAdmin = "Admin".equalsIgnoreCase(currentUser.getRole());
             showPanel(new JadwalKerjaPanel(isAdmin, currentUser.getNrp()));
         });
-        jButton5.addActionListener(evt -> {
+        jButton5.addActionListener(_ -> {
             boolean isAdmin = "Admin".equalsIgnoreCase(currentUser.getRole());
             showPanel(new AbsensiPanel(isAdmin, currentUser.getNrp()));
         });
-        jButton6.addActionListener(evt -> {
+        jButton6.addActionListener(_ -> {
             boolean isAdmin = "Admin".equalsIgnoreCase(currentUser.getRole());
             showPanel(new CutiIzinPanel(isAdmin, currentUser.getNrp()));
         });
@@ -125,11 +143,11 @@ public class Menu extends javax.swing.JFrame {
         jPanelLaporan.setLayout(new GridLayout(0, 1, 5, 5));
         jPanelLaporan.setBackground(new Color(255, 255, 255));
 
-        jButton8.addActionListener(evt -> showPanel(new LaporanAbsensiHarianPanel()));
-        jButton9.addActionListener(evt -> showPanel(new LaporanAbsensiBulananPanel()));
-        jButton10.addActionListener(evt -> showPanel(new LaporanKaryawanPanel()));
-        jButton11.addActionListener(evt -> showPanel(new LaporanCutiIzinPanel()));
-        jButton12.addActionListener(evt -> showPanel(new LaporanRekapAbsensiPanel()));
+        jButton8.addActionListener(_ -> showPanel(new LaporanAbsensiHarianPanel()));
+        jButton9.addActionListener(_ -> showPanel(new LaporanAbsensiBulananPanel()));
+        jButton10.addActionListener(_ -> showPanel(new LaporanKaryawanPanel()));
+        jButton11.addActionListener(_ -> showPanel(new LaporanCutiIzinPanel()));
+        jButton12.addActionListener(_ -> showPanel(new LaporanRekapAbsensiPanel()));
 
         jPanelLaporan.add(jButton8);
         jPanelLaporan.add(jButton9);
@@ -197,13 +215,292 @@ public class Menu extends javax.swing.JFrame {
 
     // Panel Dummy
     class DashboardPanel extends JPanel {
-        public DashboardPanel() {
-            setLayout(new BorderLayout());
-            setBackground(Color.WHITE);
-            JLabel label = new JLabel("Absensi PT Zona Kreatif Indonesia", SwingConstants.CENTER);
-            label.setFont(new Font("Segoe UI", Font.BOLD, 18));
-            label.setForeground(new Color(80, 60, 130));
-            add(label, BorderLayout.CENTER);
+        private Connection conn;
+        private String nrp;
+        private String role;
+        // Warna tema baru yang lebih modern
+        private final Color PRIMARY_COLOR = new Color(50, 87, 168); // Biru yang lebih modern
+        private final Color TEXT_DARK = new Color(51, 51, 51); // Teks gelap
+        private final Color BACKGROUND = new Color(245, 247, 250); // Background light gray
+        private final Color CARD_BG = Color.WHITE; // Kartu putih
+
+        public DashboardPanel(Connection conn, String nrp, String role) {
+            this.conn = conn;
+            this.nrp = nrp;
+            this.role = role;
+        
+            setLayout(new BorderLayout(0, 20));
+            setBackground(BACKGROUND);
+            setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+        
+            if ("admin".equalsIgnoreCase(role)) {
+                // Jika admin, tampilkan chart dashboard
+                JLabel title = new JLabel("Dashboard Admin", SwingConstants.CENTER);
+                title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+                add(title, BorderLayout.NORTH);
+        
+                JPanel chartPanel = createAdminChartsPanel();
+                add(chartPanel, BorderLayout.CENTER);
+        
+            } else if ("karyawan".equalsIgnoreCase(role)) {
+                // Jika karyawan, tampilkan dashboard karyawan
+                JPanel headerPanel = createHeaderPanel();
+                JPanel cardsPanel = createCardsPanel();
+        
+                add(headerPanel, BorderLayout.NORTH);
+                add(cardsPanel, BorderLayout.CENTER);
+                
+            } else {
+                // Role tidak dikenali
+                removeAll();
+                setLayout(new BorderLayout());
+                JLabel label = new JLabel("Akses ditolak: Role tidak dikenal", SwingConstants.CENTER);
+                label.setFont(new Font("Segoe UI", Font.BOLD, 18));
+                label.setForeground(Color.RED);
+                add(label, BorderLayout.CENTER);
+            }
+        }
+        
+
+        private JPanel createAdminChartsPanel() {
+            JPanel panel = new JPanel(new GridLayout(1, 3, 20, 0));
+            panel.setBackground(BACKGROUND);
+
+            panel.add(createChartPanel("Absensi Harian", getDataAbsensiHarian()));
+            panel.add(createChartPanel("Pengajuan Cuti", getDataPengajuan("Cuti")));
+            panel.add(createChartPanel("Pengajuan Izin", getDataPengajuan("Izin")));
+
+            return panel;
+        }
+
+        private Map<String, Integer> getDataAbsensiHarian() {
+            Map<String, Integer> data = new LinkedHashMap<>();
+            try {
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT tgl, COUNT(*) AS total FROM absensi " +
+                                "GROUP BY tgl ORDER BY tgl DESC LIMIT 7");
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    data.put(rs.getString("tgl"), rs.getInt("total"));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return data;
+        }
+
+        private Map<String, Integer> getDataPengajuan(String jenis) {
+            Map<String, Integer> data = new LinkedHashMap<>();
+            try {
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT tgl_pengajuan, COUNT(*) AS total FROM cuti_izin " +
+                                "WHERE jenis = ? GROUP BY tgl_pengajuan ORDER BY tgl_pengajuan DESC LIMIT 7");
+                ps.setString(1, jenis);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    data.put(rs.getString("tgl_pengajuan"), rs.getInt("total"));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return data;
+        }
+
+        private JPanel createChartPanel(String title, Map<String, Integer> dataMap) {
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            for (Map.Entry<String, Integer> entry : dataMap.entrySet()) {
+                dataset.addValue(entry.getValue(), title, entry.getKey());
+            }
+
+            JFreeChart chart = ChartFactory.createBarChart(
+                    title, "Tanggal", "Jumlah", dataset,
+                    PlotOrientation.VERTICAL, false, true, false);
+
+            ChartPanel chartPanel = new ChartPanel(chart);
+            chartPanel.setPreferredSize(new Dimension(300, 250));
+            chartPanel.setBackground(BACKGROUND);
+
+            return chartPanel;
+        }
+
+        private JPanel createHeaderPanel() {
+            JPanel headerPanel = new JPanel(new BorderLayout());
+            headerPanel.setBackground(BACKGROUND);
+            headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+
+            // Judul dengan styling yang lebih baik
+            JLabel titleLabel = new JLabel("Dashboard Absensi", SwingConstants.LEFT);
+            titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+            titleLabel.setForeground(PRIMARY_COLOR);
+
+            // Subtitle
+            JLabel subtitleLabel = new JLabel("PT Zona Kreatif Indonesia", SwingConstants.LEFT);
+            subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            subtitleLabel.setForeground(TEXT_DARK);
+
+            JPanel titlePanel = new JPanel(new GridLayout(2, 1));
+            titlePanel.setBackground(BACKGROUND);
+            titlePanel.add(titleLabel);
+            titlePanel.add(subtitleLabel);
+
+            headerPanel.add(titlePanel, BorderLayout.WEST);
+
+            // Tambahkan tanggal saat ini di sisi kanan
+            SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd MMMM yyyy", new Locale("id", "ID"));
+            String dateString = dateFormat.format(new Date());
+            JLabel dateLabel = new JLabel(dateString);
+            dateLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            dateLabel.setForeground(TEXT_DARK);
+            headerPanel.add(dateLabel, BorderLayout.EAST);
+
+            return headerPanel;
+        }
+
+        private JPanel createCardsPanel() {
+            JPanel cardPanel = new JPanel(new GridLayout(1, 3, 20, 0));
+            cardPanel.setBackground(BACKGROUND);
+
+            // Data untuk kartu
+            Object[][] cardData = {
+                    { "Sisa Cuti", getSisaCuti() + "", "hari", new Color(76, 175, 80) },
+                    { "Hari Kerja", getHariKerja() + "", "hari", new Color(33, 150, 243) },
+                    { "Jumlah Izin", getJumlahIzin() + "", "izin", new Color(255, 152, 0) }
+            };
+
+            // Membuat kartu untuk setiap data
+            for (Object[] data : cardData) {
+                cardPanel.add(createModernCard(
+                        (String) data[0],
+                        (String) data[1],
+                        (String) data[2],
+                        (Color) data[3]));
+            }
+
+            return cardPanel;
+        }
+
+        private JPanel createModernCard(String title, String value, String unit, Color accentColor) {
+            JPanel card = new JPanel();
+            card.setLayout(new BorderLayout());
+            card.setBackground(CARD_BG);
+
+            // Shadow border effect menggunakan compound border
+            card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createEmptyBorder(5, 5, 5, 5),
+                    BorderFactory.createCompoundBorder(
+                            new ShadowBorder(3, Color.LIGHT_GRAY),
+                            BorderFactory.createEmptyBorder(20, 20, 20, 20))));
+
+            // Panel untuk judul dengan strip warna di atas
+            JPanel titlePanel = new JPanel(new BorderLayout());
+            titlePanel.setBackground(CARD_BG);
+            titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+            // Strip warna di bagian atas
+            JPanel colorStrip = new JPanel();
+            colorStrip.setBackground(accentColor);
+            colorStrip.setPreferredSize(new Dimension(50, 5));
+            titlePanel.add(colorStrip, BorderLayout.NORTH);
+
+            JLabel titleLabel = new JLabel(title);
+            titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            titleLabel.setForeground(TEXT_DARK);
+            titlePanel.add(titleLabel, BorderLayout.CENTER);
+
+            // Panel untuk nilai
+            JPanel valuePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            valuePanel.setBackground(CARD_BG);
+
+            JLabel valueLabel = new JLabel(value);
+            valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
+            valueLabel.setForeground(accentColor);
+
+            JLabel unitLabel = new JLabel(" " + unit);
+            unitLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            unitLabel.setForeground(TEXT_DARK);
+
+            valuePanel.add(valueLabel);
+            valuePanel.add(unitLabel);
+
+            card.add(titlePanel, BorderLayout.NORTH);
+            card.add(valuePanel, BorderLayout.CENTER);
+
+            return card;
+        }
+
+        // Kelas untuk membuat efek shadow pada kartu
+        private class ShadowBorder extends AbstractBorder {
+            private final int shadowSize;
+            private final Color shadowColor;
+
+            public ShadowBorder(int size, Color color) {
+                shadowSize = size;
+                shadowColor = color;
+            }
+
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                g.setColor(shadowColor);
+                for (int i = 0; i < shadowSize; i++) {
+                    g.drawRect(x + i, y + i, width - 1 - (i * 2), height - 1 - (i * 2));
+                }
+            }
+
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(shadowSize, shadowSize, shadowSize, shadowSize);
+            }
+        }
+
+        private int getSisaCuti() {
+            int totalDisetujui = 0;
+            try {
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT SUM(DATEDIFF(tgl_selesai, tgl_mulai) + 1) AS total_cuti " +
+                                "FROM cuti_izin WHERE nrp = ? AND jenis = 'Cuti' AND status_pengajuan = 'Disetujui'");
+                ps.setString(1, nrp);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next() && rs.getObject("total_cuti") != null) {
+                    totalDisetujui = rs.getInt("total_cuti");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return 12 - totalDisetujui;
+        }
+
+        private int getHariKerja() {
+            int totalHariKerja = 0;
+            try {
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT COUNT(*) AS total_hari FROM absensi " +
+                                "WHERE nrp = ? AND status IN ('Hadir', 'Telat')");
+                ps.setString(1, nrp);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    totalHariKerja = rs.getInt("total_hari");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return totalHariKerja;
+        }
+
+        private int getJumlahIzin() {
+            int jumlahIzin = 0;
+            try {
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT COUNT(*) AS jumlah FROM cuti_izin " +
+                                "WHERE nrp = ? AND jenis = 'Izin' AND status_pengajuan = 'Disetujui'");
+                ps.setString(1, nrp);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    jumlahIzin = rs.getInt("jumlah");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return jumlahIzin;
         }
     }
 

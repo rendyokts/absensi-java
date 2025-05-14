@@ -13,6 +13,8 @@ import java.sql.*;
 
 public class LaporanKaryawanPanel extends JPanel {
     private JButton generateBtn;
+    private JButton searchButton;
+    private JTextField searchField;
     private JTable table;
     private DefaultTableModel tableModel;
 
@@ -23,12 +25,22 @@ public class LaporanKaryawanPanel extends JPanel {
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         filterPanel.setBackground(Color.WHITE);
 
+        searchField = new JTextField(20);
+        searchButton = new JButton("Cari");
+        searchButton.addActionListener(e -> {
+            String keyword = searchField.getText().trim();
+            loadData(keyword);
+        });
+
         generateBtn = new JButton("Generate PDF");
         generateBtn.addActionListener(e -> generatePDF());
 
+        filterPanel.add(new JLabel("Cari (NRP / Nama):"));
+        filterPanel.add(searchField);
+        filterPanel.add(searchButton);
         filterPanel.add(generateBtn);
 
-        tableModel = new DefaultTableModel(new String[] {
+        tableModel = new DefaultTableModel(new String[]{
                 "NRP", "Nama", "Alamat", "Status", "Jabatan"
         }, 0);
 
@@ -38,15 +50,24 @@ public class LaporanKaryawanPanel extends JPanel {
         add(filterPanel, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        loadData();
+        loadData(""); // initial load
     }
 
     private void loadData() {
+        loadData("");
+    }
+
+    private void loadData(String keyword) {
         try (Connection conn = Database.getConnection()) {
             String sql = "SELECT k.nrp, k.nama, k.alamat, k.status, j.nama_jabatan " +
                     "FROM karyawan k " +
-                    "JOIN jabatan j ON k.jabatan_id = j.id";
+                    "JOIN jabatan j ON k.jabatan_id = j.id " +
+                    "WHERE k.nrp LIKE ? OR k.nama LIKE ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
+            String searchPattern = "%" + keyword + "%";
+            stmt.setString(1, searchPattern);
+            stmt.setString(2, searchPattern);
+
             ResultSet rs = stmt.executeQuery();
 
             tableModel.setRowCount(0);
