@@ -150,7 +150,7 @@ public class CutiIzinPanel extends JPanel {
         mulaiField.setEditable(false);
         JButton mulaiBtn = new JButton("Pilih Tanggal");
         mulaiBtn.addActionListener(e -> {
-            String date = JOptionPane.showInputDialog(dialog, "Tanggal Mulai (YYYY-MM-DD):", "2023-01-01");
+            String date = JOptionPane.showInputDialog(dialog, "Tanggal Mulai (YYYY-MM-DD):", "2025-01-01");
             if (date != null) {
                 mulaiField.setText(date);
             }
@@ -166,7 +166,7 @@ public class CutiIzinPanel extends JPanel {
         selesaiField.setEditable(false);
         JButton selesaiBtn = new JButton("Pilih Tanggal");
         selesaiBtn.addActionListener(e -> {
-            String date = JOptionPane.showInputDialog(dialog, "Tanggal Selesai (YYYY-MM-DD):", "2023-01-01");
+            String date = JOptionPane.showInputDialog(dialog, "Tanggal Selesai (YYYY-MM-DD):", "2025-01-01");
             if (date != null) {
                 selesaiField.setText(date);
             }
