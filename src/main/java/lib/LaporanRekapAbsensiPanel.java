@@ -9,9 +9,13 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
-import com.itextpdf.text.Font;
+import java.util.Locale;
 
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
 
 public class LaporanRekapAbsensiPanel extends JPanel {
     private JButton generateBtn;
@@ -119,6 +123,11 @@ public class LaporanRekapAbsensiPanel extends JPanel {
             PdfWriter.getInstance(doc, new FileOutputStream(path));
             doc.open();
 
+            Image logo = Image.getInstance(getClass().getResource("/images/ok.png").toURI().toString());
+            logo.scaleToFit(80, 40);
+            logo.setAlignment(Image.ALIGN_RIGHT);
+            doc.add(logo);
+
             Paragraph title = new Paragraph("LAPORAN REKAPITULASI KEHADIRAN",
                     new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD));
             title.setAlignment(Element.ALIGN_CENTER);
@@ -146,6 +155,25 @@ public class LaporanRekapAbsensiPanel extends JPanel {
             }
 
             doc.add(pdfTable);
+
+            String namaUser = Session.getCurrentUser();
+            Font userFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC);
+            Paragraph generatedBy = new Paragraph("Dicetak oleh: " + namaUser, userFont);
+            generatedBy.setAlignment(Element.ALIGN_RIGHT);
+            generatedBy.setSpacingBefore(15f);
+            doc.add(generatedBy);
+
+            Calendar cal = Calendar.getInstance();
+            SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", new Locale("id", "ID"));
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy", new Locale("id", "ID"));
+            String day = dayFormat.format(cal.getTime());
+            String date = dateFormat.format(cal.getTime());
+
+            Paragraph printDate = new Paragraph("Tanggal cetak: " + day + ", " + date, userFont);
+            printDate.setAlignment(Element.ALIGN_RIGHT);
+            printDate.setSpacingBefore(5f);
+            doc.add(printDate);
+
             doc.close();
 
             JOptionPane.showMessageDialog(this, "PDF berhasil disimpan:\n" + path,

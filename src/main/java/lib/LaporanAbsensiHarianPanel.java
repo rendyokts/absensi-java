@@ -8,7 +8,6 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 import org.jdatepicker.impl.DateComponentFormatter;
 
-
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -17,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.*;
 import java.util.Properties;
 
@@ -25,6 +25,7 @@ public class LaporanAbsensiHarianPanel extends JPanel {
     private JButton generateBtn;
     private JTable table;
     private DefaultTableModel tableModel;
+    private User currentUser;
 
     public LaporanAbsensiHarianPanel() {
         setLayout(new BorderLayout(5, 5));
@@ -145,22 +146,26 @@ public class LaporanAbsensiHarianPanel extends JPanel {
 
         try {
             Document document = new Document(PageSize.A4.rotate());
-            PdfWriter.getInstance(document, new FileOutputStream(filePath));
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filePath));
             document.open();
 
-            // Judul Laporan
-            Date selectedDate = (Date) datePicker.getModel().getValue();
-            String title = "LAPORAN ABSENSI HARIAN\n" +
-                    new SimpleDateFormat("EEEE, dd MMMM yyyy").format(selectedDate);
+            // === Logo di pojok kanan atas ===
+            Image logo = Image.getInstance(getClass().getResource("/images/ok.png").toURI().toString());
+            logo.scaleAbsolute(100, 50); // atur ukuran logo
+            logo.setAbsolutePosition(document.right() - 100, document.top() - 50); // posisikan di kanan atas
+            document.add(logo);
 
-            com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA,
-                    18, com.itextpdf.text.Font.BOLD);
+            // === Judul Laporan di tengah ===
+            Date selectedDate = (Date) datePicker.getModel().getValue();
+            String title = "LAPORAN ABSENSI HARIAN";
+
+            com.itextpdf.text.Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
             Paragraph titlePara = new Paragraph(title, titleFont);
             titlePara.setAlignment(Element.ALIGN_CENTER);
-            titlePara.setSpacingAfter(20f);
+            titlePara.setSpacingAfter(10f);
             document.add(titlePara);
 
-            // Informasi Perusahaan
+            // === Info Perusahaan ===
             Font companyFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
             Paragraph companyInfo = new Paragraph();
             companyInfo.add(new Chunk("PT Zona Kreatif Indonesia\n", companyFont));
@@ -169,11 +174,10 @@ public class LaporanAbsensiHarianPanel extends JPanel {
             companyInfo.setSpacingAfter(15f);
             document.add(companyInfo);
 
-            // Tabel Data
+            // === Tabel Data ===
             PdfPTable pdfTable = new PdfPTable(table.getColumnCount());
             pdfTable.setWidthPercentage(100);
 
-            // Header Tabel
             Font headerFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
             for (int i = 0; i < table.getColumnCount(); i++) {
                 PdfPCell cell = new PdfPCell(new Phrase(table.getColumnName(i), headerFont));
@@ -182,7 +186,6 @@ public class LaporanAbsensiHarianPanel extends JPanel {
                 pdfTable.addCell(cell);
             }
 
-            // Isi Tabel
             Font contentFont = new Font(Font.FontFamily.HELVETICA, 9, Font.NORMAL);
             SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -199,12 +202,12 @@ public class LaporanAbsensiHarianPanel extends JPanel {
 
                     PdfPCell cell = new PdfPCell(new Phrase(text, contentFont));
 
-                    if (col == 4) { // Kolom Status
-                        if ("Alpha".equals(text)) {
+                    if (col == 4) {
+                        if ("Alpha".equalsIgnoreCase(text)) {
                             cell.setBackgroundColor(new BaseColor(255, 150, 150));
-                        } else if ("Telat".equals(text)) {
+                        } else if ("Telat".equalsIgnoreCase(text)) {
                             cell.setBackgroundColor(new BaseColor(255, 255, 150));
-                        } else if ("Hadir".equals(text)) {
+                        } else if ("Hadir".equalsIgnoreCase(text)) {
                             cell.setBackgroundColor(new BaseColor(150, 255, 150));
                         }
                     }
@@ -215,11 +218,18 @@ public class LaporanAbsensiHarianPanel extends JPanel {
 
             document.add(pdfTable);
 
-            // Footer
+            String namaUser = Session.getCurrentUser();
+            Font userFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC);
+            Paragraph generatedBy = new Paragraph("Dicetak Oleh: " + namaUser, userFont);
+            generatedBy.setAlignment(Element.ALIGN_RIGHT);
+            generatedBy.setSpacingBefore(15f);
+            document.add(generatedBy);
+
+            // === Tanggal dan Footer di pojok kanan bawah ===
             Paragraph footer = new Paragraph();
-            footer.add(new Chunk("\nDicetak pada: " +
-                    new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), companyFont));
             footer.setAlignment(Element.ALIGN_RIGHT);
+            footer.setSpacingBefore(30f);
+            footer.add(new Phrase(getTanggalIndonesia(selectedDate), companyFont));
             document.add(footer);
 
             document.close();
@@ -236,5 +246,30 @@ public class LaporanAbsensiHarianPanel extends JPanel {
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private String getTanggalIndonesia(Date date) {
+        SimpleDateFormat sdfHari = new SimpleDateFormat("EEEE");
+        SimpleDateFormat sdfTanggal = new SimpleDateFormat("dd");
+        SimpleDateFormat sdfBulan = new SimpleDateFormat("MMMM");
+        SimpleDateFormat sdfTahun = new SimpleDateFormat("yyyy");
+
+        String hari = sdfHari.format(date);
+        String tanggal = sdfTanggal.format(date);
+        String bulan = sdfBulan.format(date);
+        String tahun = sdfTahun.format(date);
+
+        // Ganti ke bahasa Indonesia
+        hari = hari.replace("Monday", "Senin").replace("Tuesday", "Selasa").replace("Wednesday", "Rabu")
+                .replace("Thursday", "Kamis").replace("Friday", "Jumat").replace("Saturday", "Sabtu")
+                .replace("Sunday", "Minggu");
+
+        bulan = bulan.replace("January", "Januari").replace("February", "Februari")
+                .replace("March", "Maret").replace("April", "April").replace("May", "Mei")
+                .replace("June", "Juni").replace("July", "Juli").replace("August", "Agustus")
+                .replace("September", "September").replace("October", "Oktober")
+                .replace("November", "November").replace("December", "Desember");
+
+        return hari + ", " + tanggal + " " + bulan + " " + tahun;
     }
 }

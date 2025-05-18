@@ -4,12 +4,16 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.*;
 
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 public class LaporanKaryawanPanel extends JPanel {
     private JButton generateBtn;
@@ -106,12 +110,25 @@ public class LaporanKaryawanPanel extends JPanel {
             PdfWriter.getInstance(doc, new FileOutputStream(path));
             doc.open();
 
+            Image logo = Image.getInstance(getClass().getResource("/images/ok.png").toURI().toString());
+            logo.scaleAbsolute(100, 50); // atur ukuran logo
+            logo.setAbsolutePosition(doc.right() - 100, doc.top() - 50); // posisikan di kanan atas
+            doc.add(logo);
+
             String title = "LAPORAN DATA KARYAWAN";
 
             Paragraph pTitle = new Paragraph(title, new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD));
             pTitle.setAlignment(Element.ALIGN_CENTER);
             pTitle.setSpacingAfter(20);
             doc.add(pTitle);
+
+            Font companyFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
+            Paragraph companyInfo = new Paragraph();
+            companyInfo.add(new Chunk("PT Zona Kreatif Indonesia\n", companyFont));
+            companyInfo.add(new Chunk("Jl. Raya Bogor No. 123, Jakarta\n\n", companyFont));
+            companyInfo.setAlignment(Element.ALIGN_CENTER);
+            companyInfo.setSpacingAfter(15f);
+            doc.add(companyInfo);
 
             PdfPTable pdfTable = new PdfPTable(table.getColumnCount());
             pdfTable.setWidthPercentage(100);
@@ -133,6 +150,24 @@ public class LaporanKaryawanPanel extends JPanel {
             }
 
             doc.add(pdfTable);
+            String namaUser = Session.getCurrentUser();
+            Font userFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC);
+            Paragraph generatedBy = new Paragraph("Dicetak Oleh: " + namaUser, userFont);
+            generatedBy.setAlignment(Element.ALIGN_RIGHT);
+            generatedBy.setSpacingBefore(15f);
+            doc.add(generatedBy);
+
+            Calendar cal = Calendar.getInstance();
+            SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", new Locale("id", "ID"));
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy", new Locale("id", "ID"));
+            String day = dayFormat.format(cal.getTime());
+            String date = dateFormat.format(cal.getTime());
+
+            Paragraph printDate = new Paragraph("Tanggal cetak: " + day + ", " + date, userFont);
+            printDate.setAlignment(Element.ALIGN_RIGHT);
+            printDate.setSpacingBefore(5f);
+            doc.add(printDate);
+
             doc.close();
 
             JOptionPane.showMessageDialog(this,

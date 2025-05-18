@@ -53,8 +53,9 @@ public class Menu extends javax.swing.JFrame {
         int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin logout?", "Konfirmasi Logout",
                 JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            this.dispose(); // Tutup jendela menu
-            new Login().setVisible(true); // Kembali ke form login
+            Session.setCurrentUser("");
+            this.dispose();
+            new Login().setVisible(true);
         }
     }
 
@@ -70,14 +71,11 @@ public class Menu extends javax.swing.JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Main Panel dengan warna gradient yang lebih lembut
         jPanel1 = new javax.swing.JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                // Gradient warna yang lebih modern
                 Color color1 = new Color(100, 120, 220);
                 Color color2 = new Color(245, 245, 255);
                 GradientPaint gp = new GradientPaint(0, 0, color1, getWidth(), getHeight(), color2);
@@ -86,7 +84,6 @@ public class Menu extends javax.swing.JFrame {
             }
         };
 
-        // Panel konten utama dengan shadow effect
         jPanel2 = new javax.swing.JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -106,11 +103,9 @@ public class Menu extends javax.swing.JFrame {
         jPanel2.setOpaque(false);
         jPanel2.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Init panel dan komponen lainnya
         jPanelMenu = new javax.swing.JPanel();
         jPanelLaporan = new javax.swing.JPanel();
 
-        // Header Label dengan styling
         jLabel1 = new javax.swing.JLabel("Zona Kreatif");
         jLabel1.setFont(new Font("Segoe UI", Font.BOLD, 22));
         jLabel1.setForeground(new Color(255, 255, 255));
@@ -123,7 +118,6 @@ public class Menu extends javax.swing.JFrame {
         jLabel3.setFont(new Font("Segoe UI", Font.BOLD, 16));
         jLabel3.setForeground(new Color(255, 255, 255));
 
-        // Setup logo dan judul aplikasi dengan penanganan null
         JLabel logoLabel = new JLabel();
         try {
             URL logoUrl = getClass().getResource("/images/logo.png");
@@ -133,7 +127,6 @@ public class Menu extends javax.swing.JFrame {
                 logoIcon = new ImageIcon(img);
                 logoLabel.setIcon(logoIcon);
             } else {
-                // Jika logo tidak ditemukan, gunakan label teks sebagai pengganti
                 JLabel iconText = new JLabel("ZK");
                 iconText.setFont(new Font("Segoe UI", Font.BOLD, 18));
                 iconText.setForeground(Color.WHITE);
@@ -145,7 +138,6 @@ public class Menu extends javax.swing.JFrame {
             }
         } catch (Exception ex) {
             System.err.println("Failed to load logo: " + ex.getMessage());
-            // Menggunakan label teks sebagai pengganti jika terjadi error
             JLabel iconText = new JLabel("ZK");
             iconText.setFont(new Font("Segoe UI", Font.BOLD, 18));
             iconText.setForeground(Color.WHITE);
@@ -156,7 +148,6 @@ public class Menu extends javax.swing.JFrame {
             logoLabel = iconText;
         }
 
-        // Panel untuk logo dan judul dengan efek transparan
         JPanel logoTitlePanel = new JPanel();
         logoTitlePanel.setLayout(new BoxLayout(logoTitlePanel, BoxLayout.X_AXIS));
         logoTitlePanel.setBackground(new Color(0, 0, 0, 40));
@@ -165,11 +156,9 @@ public class Menu extends javax.swing.JFrame {
         logoTitlePanel.add(Box.createRigidArea(new Dimension(10, 0)));
         logoTitlePanel.add(jLabel1);
 
-        // Setup button dengan styling
         setupMenuButtons();
         setupLaporanButtons();
 
-        // Logout button dengan styling khusus
         jButtonLogout = createStyledButton("Logout", getSafeIcon("/images/logout.png"));
         jButtonLogout.setBackground(new Color(220, 80, 80));
         jButtonLogout.setForeground(Color.WHITE);
@@ -179,20 +168,17 @@ public class Menu extends javax.swing.JFrame {
         setPreferredSize(new java.awt.Dimension(1280, 768));
         setTitle("Zona Kreatif - Sistem Manajemen Karyawan");
 
-        // Layout setup
         configureLayout(logoTitlePanel);
 
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(jPanel1, BorderLayout.CENTER);
 
-        // Menampilkan Dashboard secara default
         showPanel(new DashboardPanel(Database.getConnection(), currentUser.getNrp(), currentUser.getRole()));
 
         pack();
-        setLocationRelativeTo(null); // Untuk membuat aplikasi muncul di tengah layar
+        setLocationRelativeTo(null);
     }
 
-    // Fungsi untuk membuat menu button dengan style yang konsisten
     private JButton createStyledButton(String text, ImageIcon icon) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -224,7 +210,6 @@ public class Menu extends javax.swing.JFrame {
         return button;
     }
 
-    // Helper method to safely get icon or return null if not found
     private ImageIcon getSafeIcon(String path) {
         try {
             URL iconUrl = getClass().getResource(path);
@@ -237,7 +222,6 @@ public class Menu extends javax.swing.JFrame {
         return null;
     }
 
-    // Setup menu buttons dengan icon dan styling
     private void setupMenuButtons() {
         jPanelMenu.setLayout(new BoxLayout(jPanelMenu, BoxLayout.Y_AXIS));
         jPanelMenu.setOpaque(false);
@@ -256,15 +240,12 @@ public class Menu extends javax.swing.JFrame {
                 new DashboardPanel(Database.getConnection(), currentUser.getNrp(), currentUser.getRole())));
 
         jButton4.addActionListener(evt -> {
-            // boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
             showPanel(new JadwalKerjaPanel(isAdmin, currentUser.getNrp()));
         });
         jButton5.addActionListener(evt -> {
-            // boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
             showPanel(new AbsensiPanel(isAdmin, currentUser.getNrp()));
         });
         jButton6.addActionListener(evt -> {
-            // boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
             showPanel(new CutiIzinPanel(isAdmin, currentUser.getNrp()));
         });
 
@@ -274,57 +255,46 @@ public class Menu extends javax.swing.JFrame {
             jButton4.addActionListener(evt -> showPanel(new JadwalKerjaPanel(true, currentUser.getNrp())));
         }
 
-        // Tambahkan panel untuk setiap button agar bisa menambahkan padding dan margin
-        // yang konsisten
         addButtonToPanel(jPanelMenu, jButton1);
         addButtonToPanel(jPanelMenu, jButton4);
         addButtonToPanel(jPanelMenu, jButton6);
         addButtonToPanel(jPanelMenu, jButton5);
-        
+
         if (isAdmin) {
             addButtonToPanel(jPanelMenu, jButton3);
             addButtonToPanel(jPanelMenu, jButton2);
         }
     }
 
-    // Setup laporan buttons dengan icon dan styling
-    // Setup laporan buttons dengan icon dan styling
     private void setupLaporanButtons() {
         jPanelLaporan.setLayout(new BoxLayout(jPanelLaporan, BoxLayout.Y_AXIS));
         jPanelLaporan.setOpaque(false);
         jPanelLaporan.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-        // Pastikan panel laporan dan labelnya selalu diinisialisasi terlebih dahulu
         boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
 
-        // Inisialisasi semua tombol terlebih dahulu (tapi bisa disembunyikan nanti)
         jButton8 = createStyledButton("Laporan Absensi Harian", getSafeIcon("/images/report-daily.png"));
         jButton9 = createStyledButton("Laporan Absensi Bulanan", getSafeIcon("/images/report-monthly.png"));
         jButton10 = createStyledButton("Laporan Karyawan", getSafeIcon("/images/report-employee.png"));
         jButton11 = createStyledButton("Laporan Cuti & Izin", getSafeIcon("/images/report-leave.png"));
         jButton12 = createStyledButton("Rekapitulasi Kehadiran", getSafeIcon("/images/report-summary.png"));
 
-        // Tambahkan action listeners
         jButton8.addActionListener(evt -> showPanel(new LaporanAbsensiHarianPanel()));
         jButton9.addActionListener(evt -> showPanel(new LaporanAbsensiBulananPanel()));
         jButton10.addActionListener(evt -> showPanel(new LaporanKaryawanPanel()));
         jButton11.addActionListener(evt -> showPanel(new LaporanCutiIzinPanel()));
         jButton12.addActionListener(evt -> showPanel(new LaporanRekapAbsensiPanel()));
 
-        // Tambahkan semua tombol ke panel
         addButtonToPanel(jPanelLaporan, jButton8);
         addButtonToPanel(jPanelLaporan, jButton9);
         addButtonToPanel(jPanelLaporan, jButton10);
         addButtonToPanel(jPanelLaporan, jButton11);
         addButtonToPanel(jPanelLaporan, jButton12);
 
-        // Set visibilitas panel laporan dan semua komponennya berdasarkan role
-        // Ini lebih aman daripada tidak menambahkan komponennya sama sekali
         jPanelLaporan.setVisible(isAdmin);
         jLabel3.setVisible(isAdmin);
     }
 
-    // Helper method untuk menambahkan button ke panel dengan padding
     private void addButtonToPanel(JPanel panel, JButton button) {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BorderLayout());
@@ -334,19 +304,15 @@ public class Menu extends javax.swing.JFrame {
         panel.add(buttonPanel);
     }
 
-    // Setup layout komponen
     private void configureLayout(JPanel logoTitlePanel) {
-        // Panel sidebar dengan background semi-transparan
         JPanel sidebarPanel = new JPanel();
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
         sidebarPanel.setBackground(new Color(30, 50, 100, 180));
         sidebarPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 20, 10));
 
-        // Tambahkan komponen ke sidebar panel
         sidebarPanel.add(logoTitlePanel);
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // Panel untuk kategori Master Data
         JPanel masterDataHeaderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         masterDataHeaderPanel.setOpaque(false);
         masterDataHeaderPanel.add(jLabel2);
@@ -355,7 +321,6 @@ public class Menu extends javax.swing.JFrame {
 
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // Panel untuk kategori Laporan
         JPanel laporanHeaderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         laporanHeaderPanel.setOpaque(false);
         laporanHeaderPanel.add(jLabel3);
@@ -364,13 +329,11 @@ public class Menu extends javax.swing.JFrame {
 
         sidebarPanel.add(Box.createVerticalGlue());
 
-        // Panel untuk logout button
         JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         logoutPanel.setOpaque(false);
         logoutPanel.add(jButtonLogout);
         sidebarPanel.add(logoutPanel);
 
-        // Setup layout utama
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -441,7 +404,6 @@ public class Menu extends javax.swing.JFrame {
                 add(cardsPanel, BorderLayout.CENTER);
 
             } else {
-                // Role tidak dikenali
                 removeAll();
                 setLayout(new BorderLayout());
                 JLabel label = new JLabel("Akses ditolak: Role tidak dikenal", SwingConstants.CENTER);
@@ -687,7 +649,6 @@ public class Menu extends javax.swing.JFrame {
         }
     }
 
-    // Deklarasi komponen GUI
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanelMenu;
     javax.swing.JLabel jLabel2;

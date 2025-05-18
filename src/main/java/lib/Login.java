@@ -223,6 +223,8 @@ public class Login extends javax.swing.JFrame {
                             rs.getString("no_hp"),
                             rs.getString("role"));
 
+                    Session.setCurrentUser(rs.getString("name"));
+
                     Arrays.fill(jPasswordField1.getPassword(), '0'); // Clear password
                     new lib.Menu(currentUser).setVisible(true);
                     this.dispose();
