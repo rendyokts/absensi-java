@@ -124,15 +124,24 @@ public class LaporanRekapAbsensiPanel extends JPanel {
             doc.open();
 
             Image logo = Image.getInstance(getClass().getResource("/images/ok.png").toURI().toString());
-            logo.scaleToFit(80, 40);
-            logo.setAlignment(Image.ALIGN_RIGHT);
+            logo.scaleToFit(80, 80);
+            logo.setAbsolutePosition(doc.right() - 100, doc.top() - 80); // posisikan di kanan atas
             doc.add(logo);
 
             Paragraph title = new Paragraph("LAPORAN REKAPITULASI KEHADIRAN",
                     new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD));
             title.setAlignment(Element.ALIGN_CENTER);
-            title.setSpacingAfter(20);
+            title.setSpacingAfter(10f);
             doc.add(title);
+            
+            // === Info Perusahaan ===
+            Font companyFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
+            Paragraph companyInfo = new Paragraph();
+            companyInfo.add(new Chunk("PT Zona Kreatif Indonesia\n", companyFont));
+            companyInfo.add(new Chunk("Jl. Raya Bogor No. 123, Jakarta\n\n", companyFont));
+            companyInfo.setAlignment(Element.ALIGN_CENTER);
+            companyInfo.setSpacingAfter(15f);
+            doc.add(companyInfo);
 
             PdfPTable pdfTable = new PdfPTable(table.getColumnCount());
             pdfTable.setWidthPercentage(100);
@@ -158,10 +167,9 @@ public class LaporanRekapAbsensiPanel extends JPanel {
 
             String namaUser = Session.getCurrentUser();
             Font userFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC);
-            Paragraph generatedBy = new Paragraph("Dicetak oleh: " + namaUser, userFont);
+            Paragraph generatedBy = new Paragraph( namaUser, userFont);
             generatedBy.setAlignment(Element.ALIGN_RIGHT);
-            generatedBy.setSpacingBefore(15f);
-            doc.add(generatedBy);
+            generatedBy.setSpacingBefore(50f);
 
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", new Locale("id", "ID"));
@@ -169,10 +177,12 @@ public class LaporanRekapAbsensiPanel extends JPanel {
             String day = dayFormat.format(cal.getTime());
             String date = dateFormat.format(cal.getTime());
 
-            Paragraph printDate = new Paragraph("Tanggal cetak: " + day + ", " + date, userFont);
+            Paragraph printDate = new Paragraph("Jakarta, " + day + ", " + date, userFont);
             printDate.setAlignment(Element.ALIGN_RIGHT);
-            printDate.setSpacingBefore(5f);
+            printDate.setSpacingBefore(10f);
+            
             doc.add(printDate);
+            doc.add(generatedBy);
 
             doc.close();
 

@@ -151,8 +151,8 @@ public class LaporanAbsensiHarianPanel extends JPanel {
 
             // === Logo di pojok kanan atas ===
             Image logo = Image.getInstance(getClass().getResource("/images/ok.png").toURI().toString());
-            logo.scaleAbsolute(100, 50); // atur ukuran logo
-            logo.setAbsolutePosition(document.right() - 100, document.top() - 50); // posisikan di kanan atas
+            logo.scaleAbsolute(80, 80); // atur ukuran logo
+            logo.setAbsolutePosition(document.right() - 100, document.top() - 80); // posisikan di kanan atas
             document.add(logo);
 
             // === Judul Laporan di tengah ===
@@ -220,17 +220,19 @@ public class LaporanAbsensiHarianPanel extends JPanel {
 
             String namaUser = Session.getCurrentUser();
             Font userFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC);
-            Paragraph generatedBy = new Paragraph("Dicetak Oleh: " + namaUser, userFont);
+            Paragraph generatedBy = new Paragraph( namaUser, userFont);
             generatedBy.setAlignment(Element.ALIGN_RIGHT);
-            generatedBy.setSpacingBefore(15f);
-            document.add(generatedBy);
+            generatedBy.setSpacingBefore(50f);
+            
 
             // === Tanggal dan Footer di pojok kanan bawah ===
-            Paragraph footer = new Paragraph();
+            Paragraph footer = new Paragraph("Jakarta, ", userFont);
             footer.setAlignment(Element.ALIGN_RIGHT);
-            footer.setSpacingBefore(30f);
-            footer.add(new Phrase(getTanggalIndonesia(selectedDate), companyFont));
+            footer.setSpacingBefore(10f);
+            footer.add(new Phrase(getTanggalIndonesia(selectedDate), userFont));
+            
             document.add(footer);
+            document.add(generatedBy);
 
             document.close();
 
