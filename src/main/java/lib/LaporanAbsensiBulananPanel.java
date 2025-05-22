@@ -198,7 +198,7 @@ public class LaporanAbsensiBulananPanel extends JPanel {
             String day = dayFormat.format(cal.getTime());
             String date = dateFormat.format(cal.getTime());
 
-            Paragraph printDate = new Paragraph("Jakarta, " + day + ", " + date, userFont);
+            Paragraph printDate = new Paragraph("Jakarta, " + day + " " + date, userFont);
             printDate.setAlignment(Element.ALIGN_RIGHT);
             printDate.setSpacingBefore(10f);
             

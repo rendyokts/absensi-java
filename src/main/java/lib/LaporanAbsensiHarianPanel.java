@@ -272,6 +272,6 @@ public class LaporanAbsensiHarianPanel extends JPanel {
                 .replace("September", "September").replace("October", "Oktober")
                 .replace("November", "November").replace("December", "Desember");
 
-        return hari + ", " + tanggal + " " + bulan + " " + tahun;
+        return hari + " " + tanggal + " " + bulan + " " + tahun;
     }
 }
